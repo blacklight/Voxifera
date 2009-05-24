@@ -1,8 +1,8 @@
-This is BlackLight's vocal recognitor, and it's damn cool. You teach him
+This is BlackLight's and evilsocket's vocal recognitor, and it's damn cool. You teach him
 what to do, you say it with your voice, it does it.
 
-Usage: vocal [-a] [-c <file>] [-h]
-
+Usage: vocal [-d <device>] [-a] [-c <file>] [-h]
+        -d <device>     Use a different device instead the default one (/dev/dsp)
 	-a		Append a new vocal sample with an associated command
 	-c <file>	Use a different rc file (default: ~/.vocalrc)
 	-h		This help
