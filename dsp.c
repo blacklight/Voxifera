@@ -1,10 +1,10 @@
 #include "vocal.h"
 
-int init_dsp()  {
+int init_dsp( char *device )  {
 	int dsp, arg;
 
-	if ((dsp=open("/dev/dsp", O_RDONLY)) < 0) {
-		perror("open of /dev/dsp failed");
+	if ((dsp=open( (device == NULL ? "/dev/dsp" : device), O_RDONLY)) < 0) {
+		perror("open of sound device failed");
 		return -1;
 	}
 
@@ -16,7 +16,7 @@ int init_dsp()  {
 	}
 
 	if (arg != AFMT_U8)  {
-		perror ("/dev/dsp doesn't support AFMT_U8");
+		perror ("sound device doesn't support AFMT_U8");
 		return -1;
 	}
 

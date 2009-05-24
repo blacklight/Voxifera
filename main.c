@@ -6,7 +6,8 @@ void helpandusage()  {
 	fprintf (stderr,
 			"---=== BlackLight's vocal recognition v.0.1b ===---\n"
 			"author @ blacklight@autistici.org\n\n"
-			"Usage: vocal [-a] [-c <file>] [-h]\n\n"
+			"Usage: vocal [-d <device>] [-a] [-c <file>] [-h]\n\n"
+			"\t-d <device>\tUse a different device instead the default one (/dev/dsp)\n"
 			"\t-a\t\tAppend a new vocal sample with an associated command\n"
 			"\t-c <file>\tUse a different rc file (default: ~/.vocalrc)\n"
 			"\t-h\t\tPrint this help and exit\n"
@@ -17,7 +18,7 @@ int main (int argc, char **argv)  {
 	int i, j, dsp, fd, ch, size, recognized;
 	int TOTSIZE = BUF_SIZE*SAMPLE_SIZE;
 	
-	char *line, *tmp, *cmd = NULL, *fname = NULL;
+	char *line, *tmp, *cmd = NULL, *fname = NULL, device = NULL;
 	char **match = NULL;
 	
 	double deviance;
@@ -33,24 +34,23 @@ int main (int argc, char **argv)  {
 	u8 *buf;
 	mode m = capture;
 
-	while ((ch=getopt(argc, argv, "ahc:"))>0)  {
-		if (ch == 'a')
-			m = append;
-		else if (ch == 'c')
-			fname = strdup(optarg);
-		else if (ch == 'h')  {
-			helpandusage();
-			return 0;
-		} else  {
-			helpandusage();
-			return 1;
+	while ((ch=getopt(argc, argv, "ahc:d:"))>0)  {
+		switch(ch){
+			case 'd' : device = strdup(optarg); break;
+			case 'a' : m      = append;         break;
+			case 'c' : fname  = strdup(optarg); break;
+			case 'h' : helpandusage();
+					   return 0;                break;
+			default  :
+					   helpandusage();
+					   return 1;		
 		}
 	}
 
-	buf = (u8*) malloc(TOTSIZE);
+	buf     = (u8*) malloc(TOTSIZE);
 	neutral = (double*) malloc(TOTSIZE*sizeof(double));
-	trans = (double*) malloc(TOTSIZE*sizeof(double));
-	memset (buf, 0x80, TOTSIZE);
+	trans   = (double*) malloc(TOTSIZE*sizeof(double));
+	memset(buf, 0x80, TOTSIZE);
 
 	if (!fname)  {
 		fname = (char*) malloc(0x100);
@@ -65,7 +65,7 @@ int main (int argc, char **argv)  {
 	read (fd, neutral, TOTSIZE*sizeof(double));
 	close(fd);
 
-	if ((dsp = init_dsp())<0)
+	if ((dsp = init_dsp( device ))<0)
 		return 1;
 
 	memset (buf, 0x0, TOTSIZE);
