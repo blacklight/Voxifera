@@ -1,0 +1,17 @@
+This is BlackLight's vocal recognitor, and it's damn cool. You teach him
+what to do, you say it with your voice, it does it.
+
+Usage: vocal [-a] [-c <file>] [-h]
+
+	-a		Append a new vocal sample with an associated command
+	-c <file>	Use a different rc file (default: ~/.vocalrc)
+	-h		This help
+
+To teach the application a new vocal sample, just launch it with -a option.
+You will be asked to say something (at most 2 seconds) and, after a pair of
+seconds, the DCT will be calculated on that sample, saved and you will be
+asked to type a command to associate to that sample. Then, you can launch
+the program just typing ./vocal, and say again what you recorded *AS SIMILAR
+AS POSSIBLE TO THE ORIGINAL SAMPLE*. If everything goes alright, your command
+will be executed.
+
