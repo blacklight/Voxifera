@@ -19,9 +19,43 @@
 
 typedef enum  { capture, append } mode;
 
+/* tabella dei fattoriali di 1/n!, dove 0 <= n < 30 */
+static double ftable[]  = { 0.0, 1.0, 0.5, 0.166667, 0.0416667, 0.00833333, 0.00138889, 0.000198413, 
+						    2.48016e-05, 2.75573e-06, 2.75573e-07, 2.50521e-08, 2.08768e-09, 5.17584e-10, 
+						    7.81894e-10, 4.98925e-10, 4.98955e-10, -3.46594e-09, -1.11305e-09, 9.12062e-09, 
+						   -4.75707e-10, -8.3674e-10, -1.91309e-09, 1.15948e-09, -1.28875e-09, 4.81654e-10, 
+						   -5.39409e-10, 6.73499e-10, -7.26886e-10, -8.05468e-10 };
+/* intervallo in cui posizionare x */
+static double offset[]  = { 0.0, M_PI };
+/* sviluppo in serie di Taylor della funzione coseno 
+ * 
+ * x     : valore per cui calcolare il coseno .
+ * terms : numero di termini da usare nello sviluppo dove 0 <= terms < 30 e terms è un numero pari .
+ */
+inline double taylor_cosine( double x, int terms ) {
+	
+    int i        = terms,
+	    quadrant = x * TWO_O_M_PI; /* 0, 1, 2 o 3 */
+	double x2, r;
+	
+	/* tariamo x in modo tale che −π/2 < x < π/2 */
+    x         = x - quadrant * H_M_PI;
+    quadrant += 1;
+    x         = offset[ (quadrant >> 1) & 1 ] - x;
+    x2        = -(x*x);
+	/* eseguo lo sviluppo in serie */
+    r = ftable[i] * x2;
+    for( i -= 2; i > 0; i -= 2 ){
+    	r += ftable[i];
+        r *= x2;
+    }
+
+    return r + 1;
+}
+
 void helpandusage()  {
 	fprintf (stderr,
-			"---=== BlackLight's && evilsocket's vocal recognition v.0.1b ===---\n"
+			"---=== BlackLight's & evilsocket's vocal recognition v.0.1b ===---\n"
 			"author @ blacklight@autistici.org\n"
 			"author @ evilsocket@gmail.com\n\n"
 			"Usage: vocal [-d <device>] [-a] [-c <file>] [-h]\n\n"
@@ -105,7 +139,7 @@ int main (int argc, char **argv)  {
 
 		for (j=0; j<TOTSIZE; ++j)  {
 			if (t && j)
-				v += buf[j] * cos(t*j);
+				v += buf[j] * taylor_cosine( t * j, 10 );
 			else
 				v += buf[j];
 		}
@@ -161,16 +195,18 @@ int main (int argc, char **argv)  {
 
 					match[j-2]=0;
 					value = atof(match[0]);
+					
+					double delta = ABS(ABS(value)-ABS(sum));
 
-					if (ABS(ABS(value)-ABS(sum)) <= 0.025)  {
+					if ( delta <= 0.025 )  {
 						if (!recognized)  {
-							deviance = ABS(ABS(value)-ABS(sum));
-							cmd = strdup(tmp);
-							recognized=1;
+							deviance   = delta;
+							cmd        = strdup(tmp);
+							recognized = 1;
 						} else {
-							if (ABS(ABS(value)-ABS(sum)) < deviance)  {
-								deviance = ABS(ABS(value)-ABS(sum));
-								cmd = strdup(tmp);
+							if (delta < deviance)  {
+								deviance = delta;
+								cmd      = strdup(tmp);
 							}
 						}
 					}

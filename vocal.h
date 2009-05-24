@@ -39,10 +39,14 @@
 #define	SAMPLE_SIZE	(int) (LENGTH*RATE*SIZE*CHANNELS/8)
 
 #ifndef	M_PI
-#define	M_PI		3.14159265358979323846
+#	define	M_PI		3.14159265358979323846
 #endif
-
+/* M_PI * 2 */
 #define D_M_PI  6.28318530717958623199592693708837032318115234375
+/* M_PI / 2 */
+#define H_M_PI  1.570796327
+/* 2 / M_PI */
+#define TWO_O_M_PI 0.636619772
 
 typedef unsigned char u8;
 typedef unsigned int u32;
@@ -50,9 +54,6 @@ typedef unsigned int u32;
 int init_dsp();
 char* getline (FILE *fp);
 char** preg_match (char *regex, char* s, int *size);
-double fourier (int u, u8* buf, int N);
 double ABS (double x);
-char *strdup (__const char *__s);
-int snprintf (char *__restrict __s, size_t __maxlen,
-		     __const char *__restrict __format, ...)
-     __THROW __attribute__ ((__format__ (__printf__, 3, 4)));
+
+

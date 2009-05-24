@@ -1,5 +1,5 @@
 all:
-	gcc -Wall -ansi -pedantic -o vocal main.c dsp.c utils.c -lm -w -O3 -funroll-loops -fno-rtti -ffast-math -fno-stack-protector -ffunction-sections -funsafe-math-optimizations -fno-trapping-math
+	gcc -Wall -pedantic -o vocal main.c dsp.c utils.c -lm -O3 -funroll-loops -w -ffast-math -fno-stack-protector -ffunction-sections -funsafe-math-optimizations -fno-trapping-math
 
 clean:
 	rm vocal
