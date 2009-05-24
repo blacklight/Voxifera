@@ -2,8 +2,9 @@
 
 int init_dsp( char *device )  {
 	int dsp, arg;
-
-	if ((dsp=open( (device == NULL ? "/dev/dsp" : device), O_RDONLY)) < 0) {
+	char *dev = (device == NULL ? "/dev/dsp" : device);
+	
+	if ((dsp=open( dev, O_RDONLY)) < 0) {
 		perror("open of sound device failed");
 		return -1;
 	}

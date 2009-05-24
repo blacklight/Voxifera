@@ -18,7 +18,7 @@ int main (int argc, char **argv)  {
 	int i, j, dsp, fd, ch, size, recognized;
 	int TOTSIZE = BUF_SIZE*SAMPLE_SIZE;
 	
-	char *line, *tmp, *cmd = NULL, *fname = NULL, device = NULL;
+	char *line, *tmp, *cmd = NULL, *fname = NULL, *device = NULL;
 	char **match = NULL;
 	
 	double deviance;
@@ -46,7 +46,7 @@ int main (int argc, char **argv)  {
 					   return 1;		
 		}
 	}
-
+	printf( "DEVICE : %s\n", device );
 	buf     = (u8*) malloc(TOTSIZE);
 	neutral = (double*) malloc(TOTSIZE*sizeof(double));
 	trans   = (double*) malloc(TOTSIZE*sizeof(double));
@@ -78,8 +78,7 @@ int main (int argc, char **argv)  {
 
 	close(dsp);
 		
-	printf ("capture done, computing DCT...\n");
-	int count = 0;
+	printf ("capture done, computing DCT...\n" );
 	t1 = time((unsigned) NULL);
 
 	for (i=0; i<TOTSIZE; ++i)  {
@@ -91,9 +90,6 @@ int main (int argc, char **argv)  {
 				v += buf[j] * cos(t*j);
 			else
 				v += buf[j];
-
-			if (t*j < D_M_PI)
-				count++;
 		}
 
 		v *= coeff;
@@ -107,7 +103,6 @@ int main (int argc, char **argv)  {
 
 	t2 = time((unsigned) NULL);
 	printf ("DCT computing: done in %u seconds\n", (unsigned int) (t2-t1));
-	printf ("%d arg < 2*pi\n", count);
 
 	for (i=0; i<TOTSIZE; i++)
 		sum += trans[i];
