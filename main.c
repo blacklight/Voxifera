@@ -98,7 +98,7 @@ int main (int argc, char **argv)  {
 					   return 1;		
 		}
 	}
-	printf( "DEVICE : %s\n", device );
+
 	buf     = (u8*) malloc(TOTSIZE);
 	neutral = (double*) malloc(TOTSIZE*sizeof(double));
 	trans   = (double*) malloc(TOTSIZE*sizeof(double));
@@ -132,18 +132,28 @@ int main (int argc, char **argv)  {
 		
 	printf ("capture done, computing DCT...\n" );
 	t1 = time((unsigned) NULL);
-
-	for (i=0; i<TOTSIZE; ++i)  {
-		t = PIconst*i;
-		v = 0.0;
-
-		for (j=0; j<TOTSIZE; ++j)  {
-			if (t && j)
-				v += buf[j] * taylor_cosine( t * j, 10 );
-			else
-				v += buf[j];
+	
+	
+	/* porto fuori il loop per i = 0 così da evitare controlli su t (che dipende da i) 
+	 * e j nel secondo loop più consistente . */
+	v = 0;
+	for( j = 0; j < TOTSIZE; ++j ){
+		v += buf[j];
+	}
+	v *= coeff;
+	v -= neutral[0];
+	v = (v >= 0) ? v : -v;
+	trans[0] = log(v);
+	
+	double init = buf[0];
+	for( i = 1; i < TOTSIZE; ++i ) {
+		t = PIconst * i;
+		v = init;
+		/* dato che ho inizializzato v a buf[0] e sono sicuro che t != 0, 
+		 * posso partire da j = 1 . */
+		for( j = 1; j < TOTSIZE; ++j ){
+			v += buf[j] * taylor_cosine( t * j, 10 );
 		}
-
 		v *= coeff;
 		v -= neutral[i];
 		v = (v >= 0) ? v : -v;
