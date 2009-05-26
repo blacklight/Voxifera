@@ -16,42 +16,9 @@
  ***************************************************************************/
 
 #include "vocal.h"
+#include "fdct.h"
 
 typedef enum  { capture, append } mode;
-
-/* tabella dei fattoriali di 1/n!, dove 0 <= n < 30 */
-static double ftable[]  = { 0.0, 1.0, 0.5, 0.166667, 0.0416667, 0.00833333, 0.00138889, 0.000198413, 
-						    2.48016e-05, 2.75573e-06, 2.75573e-07, 2.50521e-08, 2.08768e-09, 5.17584e-10, 
-						    7.81894e-10, 4.98925e-10, 4.98955e-10, -3.46594e-09, -1.11305e-09, 9.12062e-09, 
-						   -4.75707e-10, -8.3674e-10, -1.91309e-09, 1.15948e-09, -1.28875e-09, 4.81654e-10, 
-						   -5.39409e-10, 6.73499e-10, -7.26886e-10, -8.05468e-10 };
-/* intervallo in cui posizionare x */
-static double offset[]  = { 0.0, M_PI };
-/* sviluppo in serie di Taylor della funzione coseno 
- * 
- * x     : valore per cui calcolare il coseno .
- * terms : numero di termini da usare nello sviluppo dove 0 <= terms < 30 e terms è un numero pari .
- */
-inline double taylor_cosine( double x, int terms ) {
-	
-    int i        = terms,
-	    quadrant = x * TWO_O_M_PI; /* 0, 1, 2 o 3 */
-	double x2, r;
-	
-	/* tariamo x in modo tale che −π < x < π */
-    x         = x - quadrant * H_M_PI;
-    quadrant += 1;
-    x         = offset[ (quadrant >> 1) & 1 ] - x;
-    x2        = -(x*x);
-	/* eseguo lo sviluppo in serie */
-    r = ftable[i] * x2;
-    for( i -= 2; i > 0; i -= 2 ){
-    	r += ftable[i];
-        r *= x2;
-    }
-
-    return r + 1;
-}
 
 void helpandusage()  {
 	fprintf (stderr,
@@ -72,10 +39,9 @@ int main (int argc, char **argv)  {
 	char *line, *tmp, *cmd = NULL, *fname = NULL, *device = NULL;
 	char **match = NULL;
 	
-	double deviance;
-	double *neutral, *trans;
-	double value, sum = 0.0;
-	double t, v;
+	fdct_t dct;
+	double sum, deviance, value;
+	double *neutral;
 	
 	FILE *fp;
 	time_t t1, t2;
@@ -98,8 +64,7 @@ int main (int argc, char **argv)  {
 
 	buf     = (u8*) malloc(TOTSIZE);
 	neutral = (double*) malloc(TOTSIZE*sizeof(double));
-	trans   = (double*) malloc(TOTSIZE*sizeof(double));
-	memset(buf, 0x80, TOTSIZE);
+	memset(buf, 0x80, TOTSIZE );
 
 	if (!fname)  {
 		fname = (char*) malloc(0x100);
@@ -131,43 +96,15 @@ int main (int argc, char **argv)  {
 	t1 = time((unsigned) NULL);
 	
 	
-	/* porto fuori il loop per i = 0 così da evitare controlli su t (che dipende da i) 
-	 * e j nel secondo loop più consistente . */
-	v = 0;
-	for( j = 0; j < TOTSIZE; ++j ){
-		v += buf[j];
-	}
-	v *= M_COEFF;
-	v -= neutral[0];
-	v = (v >= 0) ? v : -v;
-	trans[0] = log(v);
-	
-	double init = buf[0];
-	for( i = 1; i < TOTSIZE; ++i ) {
-		t = M_FACTOR * i;
-		v = init;
-		/* dato che ho inizializzato v a buf[0] e sono sicuro che t != 0, 
-		 * posso partire da j = 1 . */
-		for( j = 1; j < TOTSIZE; ++j ){
-			v += buf[j] * taylor_cosine( t * j, 10 );
-		}
-		v *= M_COEFF;
-		v -= neutral[i];
-		v = (v >= 0) ? v : -v;
-		trans[i] = log(v);
-	}
+	fdct_init( &dct, buf );
 
-	free(neutral);
-	free(buf);
+	sum = fdct_sum( &dct, 36927.96, NULL/*neutral*/, TOTSIZE );
+
+	fdct_release(&dct);
 
 	t2 = time((unsigned) NULL);
+	
 	printf ("DCT computing: done in %u seconds\n", (unsigned int) (t2-t1));
-
-	for (i=0; i<TOTSIZE; i++)
-		sum += trans[i];
-	sum = exp(sum/100000.0);
-	free(trans);
-
 	printf ("vocal sequence successfully acquired, Fourier sum = %g\n", sum);
 
 	if (m == append)  {
