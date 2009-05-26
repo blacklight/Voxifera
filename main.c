@@ -38,7 +38,7 @@ inline double taylor_cosine( double x, int terms ) {
 	    quadrant = x * TWO_O_M_PI; /* 0, 1, 2 o 3 */
 	double x2, r;
 	
-	/* tariamo x in modo tale che −π/2 < x < π/2 */
+	/* tariamo x in modo tale che −π < x < π */
     x         = x - quadrant * H_M_PI;
     quadrant += 1;
     x         = offset[ (quadrant >> 1) & 1 ] - x;
@@ -68,7 +68,6 @@ void helpandusage()  {
 
 int main (int argc, char **argv)  {
 	int i, j, dsp, fd, ch, size, recognized;
-	int TOTSIZE = BUF_SIZE*SAMPLE_SIZE;
 	
 	char *line, *tmp, *cmd = NULL, *fname = NULL, *device = NULL;
 	char **match = NULL;
@@ -76,8 +75,6 @@ int main (int argc, char **argv)  {
 	double deviance;
 	double *neutral, *trans;
 	double value, sum = 0.0;
-	double PIconst = (D_M_PI/TOTSIZE);
-	double coeff = 1.0 / TOTSIZE;
 	double t, v;
 	
 	FILE *fp;
@@ -140,21 +137,21 @@ int main (int argc, char **argv)  {
 	for( j = 0; j < TOTSIZE; ++j ){
 		v += buf[j];
 	}
-	v *= coeff;
+	v *= M_COEFF;
 	v -= neutral[0];
 	v = (v >= 0) ? v : -v;
 	trans[0] = log(v);
 	
 	double init = buf[0];
 	for( i = 1; i < TOTSIZE; ++i ) {
-		t = PIconst * i;
+		t = M_FACTOR * i;
 		v = init;
 		/* dato che ho inizializzato v a buf[0] e sono sicuro che t != 0, 
 		 * posso partire da j = 1 . */
 		for( j = 1; j < TOTSIZE; ++j ){
 			v += buf[j] * taylor_cosine( t * j, 10 );
 		}
-		v *= coeff;
+		v *= M_COEFF;
 		v -= neutral[i];
 		v = (v >= 0) ? v : -v;
 		trans[i] = log(v);

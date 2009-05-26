@@ -37,6 +37,9 @@
 
 #define	BUF_SIZE		2
 #define	SAMPLE_SIZE	(int) (LENGTH*RATE*SIZE*CHANNELS/8)
+#define TOTSIZE         16000 /* BUF_SIZE * SAMPLE_SIZE */
+#define M_FACTOR        0.000392699  /* D_M_PI / TOTSIZE */
+#define M_COEFF         0.0000625    /* 1.0 / TOTSIZE */
 
 #ifndef	M_PI
 #	define	M_PI		3.14159265358979323846
